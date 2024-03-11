@@ -220,8 +220,20 @@ function getCountWeekendsInMonth(month, year) {
  * Date(2024, 0, 31) => 5
  * Date(2024, 1, 23) => 8
  */
-function getWeekNumberByDate(/* date */) {
-  throw new Error('Not implemented');
+function getWeekNumberByDate(date) {
+  const d = new Date(date);
+  const januaryFirst = new Date(d.getFullYear(), 0, 1);
+  const daysToNextSunday =
+    januaryFirst.getDay() === 0 ? 0 : (7 - januaryFirst.getDay()) % 7;
+  const nextSunday = new Date(
+    d.getFullYear(),
+    0,
+    januaryFirst.getDate() + daysToNextSunday
+  );
+  if (d <= nextSunday) return 1;
+  if (d > nextSunday)
+    return Math.ceil((d - nextSunday) / (24 * 3600 * 1000) / 7) + 1;
+  return 1;
 }
 
 /**
@@ -235,8 +247,21 @@ function getWeekNumberByDate(/* date */) {
  * Date(2024, 0, 13) => Date(2024, 8, 13)
  * Date(2023, 1, 1) => Date(2023, 9, 13)
  */
-function getNextFridayThe13th(/* date */) {
-  throw new Error('Not implemented');
+
+function getNextFridayThe13th(date) {
+  const d = new Date(date.getTime());
+  const currentFriday = new Date(
+    d.setDate(d.getDate() + ((7 - d.getDay() + 5) % 7 || 7))
+  );
+  for (let i = 1; i <= 70; i += 1) {
+    const nextFriday = new Date(
+      currentFriday.setDate(currentFriday.getDate() + 7)
+    );
+    if (nextFriday.getDate() === 13) {
+      return nextFriday;
+    }
+  }
+  return false;
 }
 
 /**
@@ -250,8 +275,8 @@ function getNextFridayThe13th(/* date */) {
  * Date(2024, 5, 1) => 2
  * Date(2024, 10, 10) => 4
  */
-function getQuarter(/* date */) {
-  throw new Error('Not implemented');
+function getQuarter(date) {
+  return Math.floor(date.getMonth() / 3) + 1;
 }
 
 /**
@@ -288,8 +313,12 @@ function getWorkSchedule(/* period, countWorkDays, countOffDays */) {
  * Date(2022, 2, 1) => false
  * Date(2020, 2, 1) => true
  */
-function isLeapYear(/* date */) {
-  throw new Error('Not implemented');
+function isLeapYear(date) {
+  const year = date.getFullYear();
+  if (year % 400 === 0 || (year % 100 !== 0 && year % 4 === 0)) {
+    return true;
+  }
+  return false;
 }
 
 module.exports = {
