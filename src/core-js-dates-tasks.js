@@ -221,19 +221,14 @@ function getCountWeekendsInMonth(month, year) {
  * Date(2024, 1, 23) => 8
  */
 function getWeekNumberByDate(date) {
-  const d = new Date(date);
-  const januaryFirst = new Date(d.getFullYear(), 0, 1);
-  const daysToNextSunday =
-    januaryFirst.getDay() === 0 ? 0 : (7 - januaryFirst.getDay()) % 7;
-  const nextSunday = new Date(
-    d.getFullYear(),
-    0,
-    januaryFirst.getDate() + daysToNextSunday
-  );
-  if (d <= nextSunday) return 1;
-  if (d > nextSunday)
-    return Math.ceil((d - nextSunday) / (24 * 3600 * 1000) / 7) + 1;
-  return 1;
+  const dateCopy = new Date(date);
+  const dayOfWeek = dateCopy.getDay();
+  dateCopy.setDate(dateCopy.getDate() + 4 - (dayOfWeek || 7));
+  const yearStart = new Date(dateCopy.getFullYear(), 0, 1);
+  const timeDifference = dateCopy - yearStart;
+  const dayDifference = Math.floor(timeDifference / (24 * 60 * 60 * 1000));
+  const weekNumber = Math.ceil((dayDifference + 1) / 7);
+  return weekNumber;
 }
 
 /**
@@ -297,8 +292,37 @@ function getQuarter(date) {
  * { start: '01-01-2024', end: '15-01-2024' }, 1, 3 => ['01-01-2024', '05-01-2024', '09-01-2024', '13-01-2024']
  * { start: '01-01-2024', end: '10-01-2024' }, 1, 1 => ['01-01-2024', '03-01-2024', '05-01-2024', '07-01-2024', '09-01-2024']
  */
-function getWorkSchedule(/* period, countWorkDays, countOffDays */) {
-  throw new Error('Not implemented');
+function getWorkSchedule(period, countWorkDays, countOffDays) {
+  const { start, end } = period;
+  const parsingDate = (dateStr) => {
+    const [day, month, year] = dateStr.split('-');
+    return new Date(year, month - 1, day);
+  };
+  const startDate = parsingDate(start);
+  const endDate = parsingDate(end);
+  const schedule = [];
+  const addDays = (date, days) => {
+    const result = new Date(date);
+    result.setDate(result.getDate() + days);
+    return result;
+  };
+  const formatedDate = (date) => {
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
+  let currentDate = startDate;
+  while (currentDate <= endDate) {
+    for (let i = 0; i < countWorkDays && currentDate <= endDate; i += 1) {
+      schedule.push(formatedDate(currentDate));
+      currentDate = addDays(currentDate, 1);
+    }
+    for (let i = 0; i < countOffDays && currentDate <= endDate; i += 1) {
+      currentDate = addDays(currentDate, 1);
+    }
+  }
+  return schedule;
 }
 
 /**
